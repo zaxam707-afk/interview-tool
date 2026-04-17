@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>面接 評価チェック表｜アウトバウンドコール・オペレーター採用</title>
+
+<!-- Excel出力（SheetJS） -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- カレンダーUI（Flatpickr） -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<style>
+  :root{
+    --bg:#0f172a; --card:#111827; --ink:#e5e7eb; --muted:#9ca3af;
+    --accent:#22d3ee; --accent2:#a78bfa;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background: radial-gradient(1200px 600px at 80% -10%, #1f2937 0%, #0b1022 55%, #080c19 100%), var(--bg);
+    color:var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP","Noto Sans","Apple Color Emoji","Segoe UI Emoji";
+  }
+  .wrap{max-width:980px; margin:48px auto; padding:0 20px;}
+  header{text-align:center; margin-bottom:28px;}
+  .hero{
+    display:inline-block; padding:16px 22px; border:1px solid #233; border-radius:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); box-shadow:0 20px 80px rgba(0,0,0,.35);
+  }
+  h1{font-size:clamp(22px,3.2vw,34px); margin:0 0 6px;}
+  .sub{color:var(--muted); font-size:14px;}
+
+  .grid{display:grid; gap:16px; grid-template-columns:1fr; margin:18px 0 28px;}
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+    border:1px solid #1f2937; border-radius:14px; padding:16px;
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+  }
+  label.small{font-size:13px; color:var(--muted);}
+  input[type="text"], textarea, select{
+    width:100%; padding:12px 14px; border-radius:10px; border:1px solid #243047; background:#0b1222; color:var(--ink);
+    outline:none; box-shadow:inset 0 2px 8px rgba(0,0,0,.25);
+  }
+  textarea{min-height:110px; resize:vertical;}
+  .row{display:grid; gap:12px; grid-template-columns:1fr;}
+  @media(min-width:700px){ .row{grid-template-columns:1fr 1fr;} }
+
+  /* アコーディオン */
+  .accordion{border-radius:12px; overflow:hidden; border:1px solid #1e293b; margin-bottom:14px;}
+  .acc-head{
+    padding:14px 16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(90deg, rgba(34,211,238,.08), rgba(167,139,250,.08));
+  }
+  .acc-head h3{margin:0; font-size:16px;}
+  .acc-head .badge{font-size:12px; color:#111; background:var(--accent); padding:4px 8px; border-radius:999px; font-weight:700;}
+  .acc-head .badge.gray{background:#94a3b8; color:#0b1022;}
+  .acc-body{display:none; padding:16px; background:rgba(255,255,255,.02); border-top:1px solid #1e293b;}
+
+  .flex{display:flex; gap:16px; flex-wrap:wrap;}
+  .pill{display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid #25324a; border-radius:999px; background:#0b1222;}
+  .pill select{
+    background:#000; border:none; color:#fff; font-size:14px; padding:4px 6px; border-radius:6px;
+  }
+
+  .hint{font-size:13px; color:var(--muted); line-height:1.6;}
+  details{border:1px dashed #27324a; border-radius:10px; padding:10px 12px; background:rgba(255,255,255,.015);}
+  details>summary{cursor:pointer; color:var(--accent); font-weight:700; margin-bottom:6px;}
+  .qa{display:grid; gap:8px; margin-top:8px;}
+  .qa .lab{font-size:12px; color:var(--muted)}
+
+  .scoreline{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .scoreline .score{font-weight:800; color:var(--accent2)}
+
+  .total{
+    position:sticky; bottom:12px; z-index:9; margin-top:24px; padding:14px 16px; border-radius:12px; border:1px solid #1f2b46;
+    background:linear-gradient(90deg, rgba(34,211,238,.08), rgba(167,139,250,.08));
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:space-between;
+  }
+
+  /* 判定ラベル色分け：A/B/C/D */
+  .result{font-weight:900; letter-spacing:.2px}
+  .result.A { color:#34d399; }  /* A=緑 */
+  .result.B { color:#3b82f6; }  /* B=青 */
+  .result.C { color:#f59e0b; }  /* C=オレンジ */
+  .result.D { color:#ef4444; }  /* D=赤 */
+
+  .btns{display:flex; gap:10px; flex-wrap:wrap}
+  button{appearance:none; border:none; cursor:pointer; padding:10px 14px; border-radius:10px; font-weight:700; color:#0b1022; background:var(--accent);}
+  button.secondary{background:var(--accent2); color:#0b1022;}
+  .footer-note{color:var(--muted); font-size:12px; margin-top:6px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="hero">
+        <h1>面接 評価チェック表</h1>
+        <div class="sub">アウトバウンドコール・オペレーター採用｜稼働安定性重視</div>
+      </div>
+    </header>
+
+    <!-- 基本情報 -->
+    <section class="card">
+      <div class="row">
+        <div>
+          <label class="small">面接日</label>
+          <input type="text" id="dateField" placeholder="YYYY-MM-DD">
+        </div>
+        <div>
+          <label class="small">候補者名</label>
+          <input type="text" id="nameField" placeholder="例）山田 太郎">
+        </div>
+      </div>
+    </section>
+
+    <!-- アコーディオン：観点 -->
+    <div id="accordionContainer" class="grid"></div>
+
+    <!-- ケースクエスチョン -->
+    <section class="accordion" id="caseAccordion">
+      <div class="acc-head">
+        <h3>ケースクエスチョン</h3>
+        <span class="badge gray">スコアなし</span>
+      </div>
+      <div class="acc-body">
+        <div class="row">
+          <div>
+            <label class="small">質問内容</label>
+            <div class="hint">
+              思考プロセスを確認したいため1つ事例を出します。こちらに対してどう考えるか教えてください。<br>
+              ある日、夕食の材料に卵を買いました。バスで帰る途中、他の人とぶつかり卵が割れてしまいました。<br>
+              このときあなたは、どう考えて次の行動をおこしますか？
+            </div>
+          </div>
+          <div>
+            <label class="small">回答記載</label>
+            <textarea id="case_answer" placeholder="候補者の回答をそのまま記載"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 総評 -->
+    <section class="card">
+      <label class="small">総評</label>
+      <textarea id="overallComment" placeholder="評価のまとめの記載をしてください。※スコア上は合格でも、採用懸念がある場合は内容を記載しエスカレを上げてください。"></textarea>
+    </section>
+
+    <!-- 合計＆アクション -->
+    <section class="total">
+      <div class="scoreline">
+        <span>合計点：</span>
+        <span id="totalScore" class="score">0</span><span>/ 12</span>
+        <span id="verdict" class="result D">（未評価）</span>
+      </div>
+      <div class="btns">
+        <button id="expandAllBtn" class="secondary" type="button">すべて開く</button>
+        <button id="collapseAllBtn" class="secondary" type="button">すべて閉じる</button>
+        <button id="exportBtn" type="button">サマリーをExcelでエクスポート</button>
+      </div>
+      <div class="footer-note">
+        合否基準：12点以上＝A（即戦力）｜10点以上＝B（良好）｜8点以上＝C（見習い枠合格）｜7点以下＝D（不合格）｜※①〜③が1点以下の項目がある場合は自動的にD（不合格）
+      </div>
+    </section>
+  </div>
+
+<script>
+/* ====== スコア対象の観点 ====== */
+const SECTIONS = [
+  { id:"understand", title:"① 理解力・説明力", scoreKey:"score_understand",
+    questions:[
+      "志望動機を教えてください。",
+      "これまでのご経験について簡単に教えてください。",
+      "初めての相手に電話をする際、意識している点は何ですか？"
+    ],
+    hints:["要点整理／質問意図への適合／声量・トーン・滑舌"],
+    samples:{3:"要点を簡潔に説明。志望動機も具体。",2:"要点は概ね説明できる。",1:"抽象的・的外れ気味。",0:"要点が伝わらない。"} },
+
+  { id:"listen", title:"② 傾聴力・姿勢", scoreKey:"score_listen",
+    questions:[
+      "仕事内容説明後、気になった点はありますか？",
+      "新しい業務を覚える際の進め方を教えてください。"
+    ],
+    hints:["相槌／理解度／質問力"],
+    samples:{3:"要点理解＋適切な質問。",2:"理解はできている。質問少なめ。",1:"理解が浅い。",0:"理解困難。"} },
+
+  { id:"shift", title:"③ 稼働の安定性（シフト基盤）", scoreKey:"score_shift",
+    questions:[
+      "1日4時間以上・週12時間以上・月50時間以上は可能でしょうか？",
+      "1週間の想定スケジュール（曜日・時間帯）を具体的に教えてください。"
+    ],
+    hints:["数値具体性／固定化可否／ばらつき"],
+    samples:{
+      3:"1日4時間以上・週12時間以上・月50時間以上可能",
+      2:"1日4時間以上・週12時間以上・月50時間以上のいずれかが可能",
+      1:"週12時間以上は稼働できそう",
+      0:"安定不可。"
+    } },
+
+  { id:"persist", title:"④ 稼働の安定性（継続意欲）", scoreKey:"score_persist",
+    questions:[
+      "半年以上、安定継続できますか？",
+      "学業・家庭・副業との両立に影響はありますか？"
+    ],
+    hints:["長期意思／生活安定"],
+    samples:{3:"半年以上継続可。",2:"半年程度は継続可。",1:"1か月以上OK。",0:"短期のみ。"} }
+];
+
+/* ====== UI生成（アコーディオン） ====== */
+const container = document.getElementById("accordionContainer");
+SECTIONS.forEach(sec=>{
+  const acc=document.createElement("section"); acc.className="accordion";
+  const head=document.createElement("div"); head.className="acc-head";
+  head.innerHTML=`<h3>${sec.title}</h3><span class="badge">クリックで開閉</span>`;
+  const body=document.createElement("div"); body.className="acc-body";
+  body.innerHTML=`
+    <div class="flex"><div class="pill">
+      <span>スコア</span>
+      <select id="${sec.scoreKey}">
+        <option value="" selected>未選択</option>
+        <option value="3">3</option><option value="2">2</option>
+        <option value="1">1</option><option value="0">0</option>
+      </select>
+    </div></div>
+    <div class="row"><div>
+      <label class="small">質問例</label>
+      <ul class="hint">${sec.questions.map(q=>`<li>${q}</li>`).join("")}</ul>
+      <details><summary>配点の目安</summary>
+        <div class="qa">
+          <div>3点: ${sec.samples[3]}</div>
+          <div>2点: ${sec.samples[2]}</div>
+          <div>1点: ${sec.samples[1]}</div>
+          <div>0点: ${sec.samples[0]}</div>
+        </div>
+      </details>
+    </div><div>
+      <label class="small">コメント</label>
+      <textarea id="${sec.id}_comment"></textarea>
+    </div></div>`;
+  head.addEventListener("click",()=>{body.style.display=(body.style.display==="block")?"none":"block";});
+  acc.appendChild(head);acc.appendChild(body);container.appendChild(acc);
+});
+
+/* ====== ケースクエスチョン開閉 ====== */
+document.querySelector("#caseAccordion .acc-head")
+  .addEventListener("click",()=>{const b=document.querySelector("#caseAccordion .acc-body");b.style.display=(b.style.display==="block")?"none":"block";});
+
+/* ====== 合計点と判定（新基準 + 特例：2点×4項目= C） ====== */
+const verdictEl=document.getElementById("verdict"); const totalEl=document.getElementById("totalScore");
+function calcTotal(){
+  let sum=0, count=0;
+  const scores=[];
+  SECTIONS.forEach(sec=>{
+    const el=document.getElementById(sec.scoreKey);
+    const v=Number(el.value);
+    if(!Number.isNaN(v)){
+      sum+=v; scores.push(v);
+      if(el.value!=="") count++;
+    }
+  });
+
+  totalEl.textContent=String(sum);
+
+  let label="（未評価）", cls="D";
+  if(count===SECTIONS.length){
+    const lowCore = scores[0]<=1 || scores[1]<=1 || scores[2]<=1; // ①〜③に1点以下あり→強制D
+    if(lowCore){ label="＝ D（不合格：①〜③に低評価あり）"; cls="D"; }
+    else if(sum>=12){ label="＝ A（即戦力）"; cls="A"; }
+    else if(sum>=10){ label="＝ B（良好）"; cls="B"; }
+    else if(sum>=8){ label="＝ C（見習い枠合格）"; cls="C"; }
+    else { label="＝ D（不合格）"; cls="D"; }
+  }else{
+    label="（未評価：未入力あり）"; cls="D";
+  }
+  verdictEl.className="result "+cls;
+  verdictEl.textContent=label;
+}
+SECTIONS.forEach(sec=>{ document.getElementById(sec.scoreKey).addEventListener("change",calcTotal); });
+calcTotal();
+
+/* ====== すべて開く / 閉じる ====== */
+document.getElementById("expandAllBtn").addEventListener("click",()=>{document.querySelectorAll(".acc-body").forEach(b=>b.style.display="block");});
+document.getElementById("collapseAllBtn").addEventListener("click",()=>{document.querySelectorAll(".acc-body").forEach(b=>b.style.display="none");});
+
+/* ====== Excel出力（ケース回答含む） ====== */
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const rawDate=document.getElementById("dateField").value||"";
+  const dateForFile=(rawDate||"date").replace(/[^0-9]/g,"");
+  const nameVal=document.getElementById("nameField").value||"";
+
+  const rows=[["面接日",rawDate],["候補者名",nameVal],[],["観点","スコア","コメント"]];
+  SECTIONS.forEach(sec=>{
+    const score=document.getElementById(sec.scoreKey).value;
+    const comment=document.getElementById(sec.id+"_comment").value;
+    rows.push([sec.title,score,comment]);
+  });
+  rows.push([]);rows.push(["ケースクエスチョン","回答",document.getElementById("case_answer").value]);
+  rows.push([]);rows.push(["合計点",document.getElementById("totalScore").textContent,"判定 "+document.getElementById("verdict").textContent]);
+  rows.push([]);rows.push(["総評",document.getElementById("overallComment").value]);
+
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"面接サマリー");
+  XLSX.writeFile(wb,`面接サマリー_${nameVal||"candidate"}_${dateForFile}.xlsx`);
+});
+
+/* ====== 日付ピッカー初期化（Flatpickr） ====== */
+flatpickr("#dateField", {
+  dateFormat: "Y-m-d",
+  allowInput: true,
+  defaultDate: new Date(),
+});
+</script>
+</body>
+</html>
