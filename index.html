@@ -92,6 +92,18 @@
   button{appearance:none; border:none; cursor:pointer; padding:10px 14px; border-radius:10px; font-weight:700; color:#0b1022; background:var(--accent);}
   button.secondary{background:var(--accent2); color:#0b1022;}
   .footer-note{color:var(--muted); font-size:12px; margin-top:6px}
+
+  /* ラジオボタン（⑤PC速度） */
+  .radio-group{display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;}
+  .radio-group label{
+    display:inline-flex; align-items:center; gap:6px; padding:10px 16px;
+    border:1px solid #25324a; border-radius:999px; background:#0b1222;
+    cursor:pointer; transition:all .2s;
+  }
+  .radio-group input[type="radio"]{accent-color:var(--accent); width:16px; height:16px;}
+  .radio-group label:has(input:checked){border-color:var(--accent); background:rgba(34,211,238,.1);}
+  .radio-group label.fail:has(input:checked){border-color:#ef4444; background:rgba(239,68,68,.1);}
+  .radio-group label.pending:has(input:checked){border-color:#f59e0b; background:rgba(245,158,11,.1);}
 </style>
 </head>
 <body>
@@ -140,6 +152,29 @@
             <label class="small">回答記載</label>
             <textarea id="case_answer" placeholder="候補者の回答をそのまま記載"></textarea>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑤ PC通信速度確認 -->
+    <section class="accordion" id="pcSpeedAccordion">
+      <div class="acc-head">
+        <h3>⑤ PC通信速度確認（80Mbps以上）</h3>
+        <span class="badge gray">スコアなし</span>
+      </div>
+      <div class="acc-body">
+        <div class="hint" style="margin-bottom:10px">
+          候補者のPC通信速度が80Mbps以上あるか確認してください。<br>
+          速度が不足している場合は不合格となります。
+        </div>
+        <div class="radio-group">
+          <label><input type="radio" name="pcSpeed" value="yes"> 有（80Mbps以上）</label>
+          <label class="fail"><input type="radio" name="pcSpeed" value="no"> 無（80Mbps未満）</label>
+          <label class="pending"><input type="radio" name="pcSpeed" value="later"> 後日確認</label>
+        </div>
+        <div style="margin-top:12px">
+          <label class="small">コメント</label>
+          <textarea id="pcSpeed_comment" placeholder="通信速度の詳細やメモ"></textarea>
         </div>
       </div>
     </section>
@@ -249,6 +284,13 @@ SECTIONS.forEach(sec=>{
 document.querySelector("#caseAccordion .acc-head")
   .addEventListener("click",()=>{const b=document.querySelector("#caseAccordion .acc-body");b.style.display=(b.style.display==="block")?"none":"block";});
 
+/* ====== ⑤ PC通信速度アコーディオン開閉 ====== */
+document.querySelector("#pcSpeedAccordion .acc-head")
+  .addEventListener("click",()=>{const b=document.querySelector("#pcSpeedAccordion .acc-body");b.style.display=(b.style.display==="block")?"none":"block";});
+
+/* PC速度ラジオの変更を検知 */
+document.querySelectorAll('input[name="pcSpeed"]').forEach(r=>r.addEventListener('change',calcTotal));
+
 /* ====== 合計点と判定（新基準 + 特例：2点×4項目= C） ====== */
 const verdictEl=document.getElementById("verdict"); const totalEl=document.getElementById("totalScore");
 function calcTotal(){
@@ -265,14 +307,36 @@ function calcTotal(){
 
   totalEl.textContent=String(sum);
 
+  // PC速度チェック状態を取得
+  const pcSpeedRadio = document.querySelector('input[name="pcSpeed"]:checked');
+  const pcSpeed = pcSpeedRadio ? pcSpeedRadio.value : "";
+
   let label="（未評価）", cls="D";
   if(count===SECTIONS.length){
     const lowCore = scores[0]<=1 || scores[1]<=1 || scores[2]<=1; // ①〜③に1点以下あり→強制D
-    if(lowCore){ label="＝ D（不合格：①〜③に低評価あり）"; cls="D"; }
+
+    // ⑤ PC速度「無」→ 一律不合格
+    if(pcSpeed==="no"){
+      label="＝ D（不合格：PC通信速度不足）"; cls="D";
+    }
+    else if(lowCore){ label="＝ D（不合格：①〜③に低評価あり）"; cls="D"; }
     else if(sum>=12){ label="＝ A（即戦力）"; cls="A"; }
     else if(sum>=10){ label="＝ B（良好）"; cls="B"; }
     else if(sum>=8){ label="＝ C（見習い枠合格）"; cls="C"; }
     else { label="＝ D（不合格）"; cls="D"; }
+
+    // ⑤ PC速度「後日確認」→ 判定ラベルに追記
+    if(pcSpeed==="later" && cls!=="D"){
+      label += "（後日PC速度確認）";
+    } else if(pcSpeed==="later" && cls==="D" && pcSpeedRadio){
+      // 不合格でも後日確認の注記は付ける（PC速度不足以外のD判定時）
+      if(pcSpeedRadio.value==="later") label += "（後日PC速度確認）";
+    }
+
+    // PC速度未選択の場合
+    if(pcSpeed===""){
+      label += "（⑤PC速度未選択）";
+    }
   }else{
     label="（未評価：未入力あり）"; cls="D";
   }
@@ -299,6 +363,13 @@ document.getElementById("exportBtn").addEventListener("click",()=>{
     rows.push([sec.title,score,comment]);
   });
   rows.push([]);rows.push(["ケースクエスチョン","回答",document.getElementById("case_answer").value]);
+
+  // ⑤ PC通信速度
+  const pcRadio = document.querySelector('input[name="pcSpeed"]:checked');
+  const pcLabel = pcRadio ? {yes:"有（80Mbps以上）",no:"無（80Mbps未満）",later:"後日確認"}[pcRadio.value] : "未選択";
+  const pcComment = document.getElementById("pcSpeed_comment").value;
+  rows.push([]);rows.push(["⑤ PC通信速度確認",pcLabel,pcComment]);
+
   rows.push([]);rows.push(["合計点",document.getElementById("totalScore").textContent,"判定 "+document.getElementById("verdict").textContent]);
   rows.push([]);rows.push(["総評",document.getElementById("overallComment").value]);
 
